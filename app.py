@@ -78,14 +78,22 @@ def login():
         if user:
             if bcrypt.check_password_hash(user.password, form.password.data):
                 login_user(user)
-                return redirect(url_for('dashboard'))
+                if user.role == 'admin':
+                    return redirect(url_for('admin_dashboard'))
+                elif user.role == 'student':
+                    return redirect(url_for('student_dashboard'))
     return render_template('login.html', form=form)
 
 
-@app.route('/dashboard', methods=['GET', 'POST'])
+@app.route('/admin_dashboard', methods=['GET', 'POST'])
 @login_required
-def dashboard():
+def admin_dashboard():
     return render_template('dashboard.html')
+
+@app.route('/student_dashboard', methods=['GET', 'POST'])
+@login_required
+def student_dashboard():
+    return render_template('home.html')
 
 @app.route('/logout', methods=['GET', 'POST'])
 @login_required
