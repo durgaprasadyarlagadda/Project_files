@@ -34,6 +34,24 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(100), nullable=False)
 
 
+class Exam(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    question = db.Column(db.String(1000), nullable=False)
+    option1 = db.Column(db.String(1000), nullable=False)
+    option2 = db.Column(db.String(1000), nullable=False)
+    option3 = db.Column(db.String(1000), nullable=False)
+    option4 = db.Column(db.String(1000), nullable=False)
+    correct_answer = db.Column(db.String(1000), nullable=False)
+    exam_code = db.Column(db.String(1000), nullable=False)
+
+class ExamForm(FlaskForm):
+    question = StringField(validators=[InputRequired()], render_kw={"placeholder": "Question"})
+    option1 = StringField(validators=[InputRequired()], render_kw={"placeholder": "Option 1"})
+    option2 = StringField(validators=[InputRequired()], render_kw={"placeholder": "Option 2"})
+    option3 = StringField(validators=[InputRequired()], render_kw={"placeholder": "Option 3"})
+    option4 = StringField(validators=[InputRequired()], render_kw={"placeholder": "Option 4"})
+    correct_answer = SelectField('Correct Answer', choices=[('option1', 'Option 1'), ('option2', 'Option 2'), ('option3', 'Option 3'), ('option4', 'Option 4')])
+
 class RegisterForm(FlaskForm):
     username = StringField(validators=[
                            InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
@@ -79,21 +97,22 @@ def login():
             if bcrypt.check_password_hash(user.password, form.password.data):
                 login_user(user)
                 if user.role == 'admin':
-                    return redirect(url_for('admin_dashboard'))
+                    return redirect(url_for('admin_page'))
                 elif user.role == 'student':
                     return redirect(url_for('student_dashboard'))
     return render_template('login.html', form=form)
 
 
-@app.route('/admin_dashboard', methods=['GET', 'POST'])
+@app.route('/admin_page', methods=['GET', 'POST'])
 @login_required
-def admin_dashboard():
-    return render_template('dashboard.html')
+def admin_page():
+    return render_template('admin_page.html')
 
 @app.route('/student_dashboard', methods=['GET', 'POST'])
 @login_required
 def student_dashboard():
-    return render_template('home.html')
+    return render_template('home.html',current_user=current_user)
+
 
 @app.route('/logout', methods=['GET', 'POST'])
 @login_required
@@ -113,6 +132,41 @@ def register():
         return redirect(url_for('login'))
 
     return render_template('register.html', form=form)
+
+
+@app.route('/create_exam', methods=['GET', 'POST'])
+@login_required
+def create_exam():
+    form = ExamForm()
+    if request.method == 'POST':
+        exam_code = request.form.get('exam_code')
+        num_questions = int(request.form.get('num_questions'))
+
+        for i in range(1, num_questions + 1):
+            question = request.form.get(f'question-{i}')
+            option1 = request.form.get(f'option1-{i}')
+            option2 = request.form.get(f'option2-{i}')
+            option3 = request.form.get(f'option3-{i}')
+            option4 = request.form.get(f'option4-{i}')
+            correct_answer = request.form.get(f'correct_answer-{i}')
+
+            new_question = Exam(
+                question=question,
+                option1=option1,
+                option2=option2,
+                option3=option3,
+                option4=option4,
+                correct_answer=correct_answer,
+                exam_code=exam_code
+            )
+
+            db.session.add(new_question)
+
+        db.session.commit()
+        return redirect(url_for('admin_page'))
+
+    return render_template('create_exam.html', form=form)
+
 
 
 if __name__ == "__main__":
