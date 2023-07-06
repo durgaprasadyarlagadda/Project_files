@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, redirect , request
+from flask import Flask, render_template, url_for, redirect , request , flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_wtf import FlaskForm
@@ -44,13 +44,22 @@ class Exam(db.Model):
     correct_answer = db.Column(db.String(1000), nullable=False)
     exam_code = db.Column(db.String(1000), nullable=False)
 
+class Marks(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), nullable=False)
+    full_name = db.Column(db.String(100), nullable=False)
+    branch = db.Column(db.String(30), nullable=False)
+    exam_code = db.Column(db.String(1000), nullable=False)
+    marks = db.Column(db.Integer, nullable=False)
+    
+
 class ExamForm(FlaskForm):
     question = StringField(validators=[InputRequired()], render_kw={"placeholder": "Question"})
     option1 = StringField(validators=[InputRequired()], render_kw={"placeholder": "Option 1"})
     option2 = StringField(validators=[InputRequired()], render_kw={"placeholder": "Option 2"})
     option3 = StringField(validators=[InputRequired()], render_kw={"placeholder": "Option 3"})
     option4 = StringField(validators=[InputRequired()], render_kw={"placeholder": "Option 4"})
-    correct_answer = SelectField('Correct Answer', choices=[('option1', 'Option 1'), ('option2', 'Option 2'), ('option3', 'Option 3'), ('option4', 'Option 4')])
+    correct_answer = StringField(validators=[InputRequired()], render_kw={"placeholder": "Correct Answer"})
 
 class RegisterForm(FlaskForm):
     username = StringField(validators=[
@@ -99,7 +108,7 @@ def login():
                 if user.role == 'admin':
                     return redirect(url_for('admin_page'))
                 elif user.role == 'student':
-                    return redirect(url_for('student_dashboard'))
+                    return redirect(url_for('student_page'))
     return render_template('login.html', form=form)
 
 
@@ -108,11 +117,16 @@ def login():
 def admin_page():
     return render_template('admin_page.html')
 
-@app.route('/student_dashboard', methods=['GET', 'POST'])
+@app.route('/student_page', methods=['GET', 'POST'])
 @login_required
-def student_dashboard():
-    return render_template('home.html',current_user=current_user)
+def student_page():
+    return render_template('student_page.html',current_user=current_user)
 
+
+@app.route('/profile')
+@login_required
+def profile():
+    return render_template('profile.html',current_user=current_user)
 
 @app.route('/logout', methods=['GET', 'POST'])
 @login_required
@@ -167,6 +181,97 @@ def create_exam():
 
     return render_template('create_exam.html', form=form)
 
+@app.route('/quiz', methods=['GET', 'POST'])
+@login_required
+def quiz():
+    if request.method == 'POST':
+        exam_code = request.form.get('exam_code')
+        exam = Exam.query.filter_by(exam_code=exam_code).all()
+
+        if not exam:
+            flash('Exam code does not exist.', 'error')
+            return redirect(url_for('quiz'))
+
+        marks = Marks.query.filter_by(username=current_user.username, exam_code=exam_code).first()
+        if marks:
+            flash('You have already attempted this exam.', 'error')
+            return redirect(url_for('quiz'))
+
+        return render_template('take_quiz.html', exam=exam, exam_code=exam_code)
+
+    return render_template('quiz.html', current_user=current_user)
+
+
+@app.route('/submit_quiz', methods=['POST'])
+@login_required
+def submit_quiz():
+    exam_code = request.form.get('exam_code')
+    exam = Exam.query.filter_by(exam_code=exam_code).all()
+
+    if not exam:
+        flash('Exam code does not exist.', 'error')
+        return redirect(url_for('quiz'))
+
+    marks = Marks.query.filter_by(username=current_user.username, exam_code=exam_code).first()
+    if marks:
+        flash('You have already attempted this exam.', 'error')
+        return redirect(url_for('quiz'))
+
+    total_marks = 0
+    for question in exam:
+        question_id = question.id
+        correct_answer = question.correct_answer
+        chosen_answer = request.form.get(f'answer-{question_id}')
+
+        if chosen_answer == correct_answer:
+            total_marks += 1
+
+    new_marks = Marks(
+        username=current_user.username,
+        full_name=current_user.full_name,
+        branch=current_user.branch,
+        exam_code=exam_code,
+        marks=total_marks
+    )
+    db.session.add(new_marks)
+    db.session.commit()
+
+    flash('Quiz submitted successfully!', 'success')
+    return redirect(url_for('quiz'))
+
+
+@app.route('/take_quiz', methods=['POST'])
+@login_required
+def take_quiz():
+    exam_code = request.form.get('exam_code')
+    exam = Exam.query.filter_by(exam_code=exam_code).all()
+
+    if not exam:
+        flash('Exam code does not exist.', 'error')
+        return redirect(url_for('quiz'))
+
+    marks = Marks.query.filter_by(username=current_user.username, exam_code=exam_code).first()
+    if marks:
+        flash('You have already attempted this exam.', 'error')
+        return redirect(url_for('quiz'))
+
+    return render_template('take_quiz.html', exam=exam, exam_code=exam_code)
+
+@app.route('/student_details')
+@login_required
+def student_details():
+    students = User.query.filter_by(role='student').all()
+    return render_template('student_details.html', students=students)
+
+@app.route('/marks_details')
+@login_required
+def marks_details():
+    marks = Marks.query.all()
+    if not marks:
+        message = 'No one has submitted Quiz yet.'
+        return render_template('marks.html', message=message)
+
+    return render_template('marks.html', marks=marks)
 
 
 if __name__ == "__main__":
