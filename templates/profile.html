@@ -1,0 +1,54 @@
+{% extends 'home1.html' %}
+
+{% block content %}
+  <style>
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        text-align: left;
+        padding: 8px;
+    }
+
+    th {
+        background-color: black;
+        color: white;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+  </style>
+
+    <div id="profile"">
+        <h2>Profile</h2>
+        <table>
+            <tr>
+                <th>Field</th>
+                <th>Value</th>
+            </tr>
+            <tr>
+                <td>Username</td>
+                <td>{{ current_user.username }}</td>
+            </tr>
+            <tr>
+                <td>Full Name</td>
+                <td>{{ current_user.full_name }}</td>
+            </tr>
+            <tr>
+                <td>Mobile Number</td>
+                <td>{{ current_user.mobile_number }}</td>
+            </tr>
+            <tr>
+                <td>Branch</td>
+                <td>{{ current_user.branch }}</td>
+            </tr>
+            <tr>
+                <td>Role</td>
+                <td>{{ current_user.role }}</td>
+            </tr>
+        </table>
+    </div>
+{% endblock %}

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz App</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .fullscreen {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #f9f9f9;
+        }
+
+        .quiz-container {
+            max-width: 500px;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .quiz-container h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .quiz-options {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .quiz-options li {
+            margin-bottom: 10px;
+        }
+
+        .quiz-options input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .submit-btn {
+            background-color: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .result-container {
+            text-align: center;
+            display: none;
+        }
+
+        .result-container h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .result-container p {
+            font-size: 18px;
+            color: #555;
+        }
+
+        /* Navbar styles */
+        header {
+            background-color: #333;
+            padding: 10px;
+            position: fixed;
+            top: 0;
+            width: 100%;
+        }
+
+        .navbar {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .navbar li {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .navbar li a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        /* Sidebar styles */
+        aside {
+            background-color: #f2f2f2;
+            padding: 10px;
+            width: 200px;
+            float: left;
+            margin-top: 40px;
+        }
+
+        .sidebar {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .sidebar li {
+            margin-bottom: 10px;
+        }
+
+        .sidebar li a {
+            color: #333;
+            text-decoration: none;
+        }
+
+        /* Footer styles */
+        footer {
+            background-color: #333;
+            padding: 10px;
+            color: #fff;
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        footer p {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul class="navbar">
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Quiz</a></li>
+                <li><a href="#">About</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <aside>
+        <ul class="sidebar">
+            <li><a href="#">Category 1</a></li>
+            <li><a href="#">Category 2</a></li>
+            <li><a href="#">Category 3</a></li>
+            <li><a href="#">Category 4</a></li>
+        </ul>
+    </aside>
+
+    <div class="fullscreen">
+        <div id="quiz-container" class="quiz-container">
+            <h1>Welcome to the Quiz App</h1>
+            <p id="question"></p>
+            <ul id="options" class="quiz-options"></ul>
+
+            <button id="submit-btn" class="submit-btn">Submit Answer</button>
+        </div>
+
+        <div id="result-container" class="result-container" style="display: none;">
+            <h2>Quiz Completed!</h2>
+            <p id="score"></p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2023 Quiz App. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const quizData = [
+            {
+                question: "How is an array initialized in C language?",
+                options: ["int a[3] = {1,2,3};", "int a = {1,2,3};", "int a[] = new int[3];", "int a(3) = [1,2,3];"],
+                answer: 0
+            },
+            {
+                question: "If p is an integer pointer with a value 1000, then what will the value of p + 5 be?",
+                options: ["1005", "1020", "1010", "1015"],
+                answer: 1
+            },
+            {
+                question: "Which of the following are not standard header files in C?",
+                options: ["stdio.h", "stdlib.h", "math.h", "None of the above"],
+                answer: 3
+            },
+            {
+                question: "In which of the following languages is function overloading not possible?",
+                options: ["C", "C++", "Python", "Java"],
+                answer: 0
+            },
+            {
+                question: "Which data structure is used to handle recursion in C?",
+                options: ["Stack", "Queue", "Deque", "Trees"],
+                answer: 0
+            },
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+
+        const questionElement = document.getElementById('question');
+        const optionsElement = document.getElementById('options');
+        const submitButton = document.getElementById('submit-btn');
+        const resultContainer = document.getElementById('result-container');
+        const scoreElement = document.getElementById('score');
+
+        function initializeQuiz() {
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const currentQuiz = quizData[currentQuestion];
+            questionElement.textContent = currentQuiz.question;
+            optionsElement.innerHTML = '';
+            currentQuiz.options.forEach((option, index) => {
+                const li = document.createElement('li');
+                const input = document.createElement('input');
+                const label = document.createElement('label');
+
+                input.type = 'radio';
+                input.name = 'option';
+                input.value = index;
+                input.id = `option${index}`;
+
+                label.textContent = option;
+                label.htmlFor = `option${index}`;
+
+                li.appendChild(input);
+                li.appendChild(label);
+                optionsElement.appendChild(li);
+            });
+        }
+
+        function checkAnswer() {
+            const selectedOption = document.querySelector('input[name="option"]:checked');
+
+            if (selectedOption) {
+                const selectedIndex = parseInt(selectedOption.value);
+                const currentQuiz = quizData[currentQuestion];
+
+                if (selectedIndex === currentQuiz.answer) {
+                    score++;
+                }
+
+                currentQuestion++;
+
+                if (currentQuestion < quizData.length) {
+                    loadQuestion();
+                } else {
+                    showResult();
+                }
+            }
+        }
+
+        function showResult() {
+            document.querySelector('.fullscreen').style.display = 'none';
+            resultContainer.style.display = 'block';
+            scoreElement.textContent = `Your Score: ${score}/${quizData.length}`;
+        }
+
+        submitButton.addEventListener('click', checkAnswer);
+        initializeQuiz();
+    </script>
+</body>
+</html>
