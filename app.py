@@ -1,14 +1,14 @@
-from flask import Flask, render_template, url_for, redirect , request , flash
+from flask import Flask, render_template, url_for, redirect , request , flash , session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField , SelectField
-from wtforms.validators import InputRequired, Length, ValidationError
+from wtforms.validators import InputRequired, Length, ValidationError , Email
 from flask_bcrypt import Bcrypt
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
-app.config['SECRET_KEY'] = 'thisisasecretkey'
+app.config['SECRET_KEY'] = 'secret_key'
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
@@ -28,6 +28,7 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False, unique=True)
     full_name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), nullable=False)
     mobile_number = db.Column(db.String(15), nullable=False)
     branch = db.Column(db.String(30), nullable=False)
     role = db.Column(db.String(10), nullable=False)
@@ -66,6 +67,8 @@ class RegisterForm(FlaskForm):
                            InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Username"})
     full_name = StringField(validators=[
                            InputRequired(), Length(min=1, max=100)], render_kw={"placeholder": "Full Name"})
+    email = StringField(validators=[
+                        InputRequired(), Email()], render_kw={"placeholder": "Email"})
     mobile_number = StringField(validators=[
                            InputRequired(), Length(min=10, max=15)], render_kw={"placeholder": "Mobile Number"})
     branch = StringField(validators=[
@@ -81,6 +84,11 @@ class RegisterForm(FlaskForm):
         if existing_user_username:
             raise ValidationError(
                 'That username already exists. Please choose a different one.')
+    def validate_email(self, email):
+        existing_user_email = User.query.filter_by(email=email.data).first()
+        if existing_user_email:
+            raise ValidationError(
+                'That email address is already registered. Please use a different one.')
 
 
 class LoginForm(FlaskForm):
@@ -94,21 +102,30 @@ class LoginForm(FlaskForm):
 
 @app.route('/')
 def home():
-    return render_template('register.html')
+    return render_template('index.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
+    msg = ''
     if request.method == 'POST':
+        students = User.query.all()
+        if not students:
+            flash('Incorrect Credentials', 'error')
+            return render_template('login.html')
         user = User.query.filter_by(username=form.username.data).first()
+        msg = msg+'i'
         if user:
             if bcrypt.check_password_hash(user.password, form.password.data):
+                msg=msg+'s'
                 login_user(user)
                 if user.role == 'admin':
                     return redirect(url_for('admin_page'))
                 elif user.role == 'student':
                     return redirect(url_for('student_page'))
+    if(msg=='i'):
+        flash('Incorrect Credentials', 'error')
     return render_template('login.html', form=form)
 
 
@@ -139,13 +156,36 @@ def logout():
 def register():
     form = RegisterForm()
     if request.method == 'POST':
+        usr_name = User.query.filter_by(username=form.username.data).all()
+        mail = User.query.filter_by(email=form.email.data).all()
+        if usr_name:
+            flash('Username already exists.Please Choose a different one.', 'error')
+            return render_template('register.html', form=form)
+        if mail:
+            flash('Email address already exists.Please Choose a different one.', 'error')
+            return render_template('register.html', form=form)
         hashed_password = bcrypt.generate_password_hash(form.password.data)
-        new_user = User(username=form.username.data, full_name=form.full_name.data, mobile_number = form.mobile_number.data,branch = form.branch.data,role = form.role.data,password=hashed_password)
+        new_user = User(username=form.username.data, full_name=form.full_name.data,email=form.email.data, mobile_number = form.mobile_number.data,branch = form.branch.data,role = form.role.data,password=hashed_password)
         db.session.add(new_user)
+        flash('Successfully registered!!', 'success')
         db.session.commit()
         return redirect(url_for('login'))
 
     return render_template('register.html', form=form)
+
+@app.route('/check', methods=['GET', 'POST'])
+@login_required
+def check():
+    form = ExamForm()
+    if request.method == 'POST':
+        exam_code = request.form.get('exam_code')
+        existing_exam = Exam.query.filter_by(exam_code=exam_code).first()
+        if existing_exam:
+            flash('Exam code already exists. Please choose a different code.','error')
+            return redirect(url_for('check'))
+        session['e_code'] = exam_code
+        return render_template('create_exam.html', form=form, exam_code=exam_code)
+    return render_template('check.html', form=form)
 
 
 @app.route('/create_exam', methods=['GET', 'POST'])
@@ -153,7 +193,7 @@ def register():
 def create_exam():
     form = ExamForm()
     if request.method == 'POST':
-        exam_code = request.form.get('exam_code')
+        exam_code = session.get('e_code')
         num_questions = int(request.form.get('num_questions'))
 
         for i in range(1, num_questions + 1):
@@ -175,10 +215,9 @@ def create_exam():
             )
 
             db.session.add(new_question)
-
+        flash('Succesfully Created the Quiz','success')
         db.session.commit()
         return redirect(url_for('admin_page'))
-
     return render_template('create_exam.html', form=form)
 
 @app.route('/quiz', methods=['GET', 'POST'])
@@ -270,9 +309,8 @@ def marks_details():
     if not marks:
         message = 'No one has submitted Quiz yet.'
         return render_template('marks.html', message=message)
-
     return render_template('marks.html', marks=marks)
-
 
 if __name__ == "__main__":
     app.run(debug=True)
+
