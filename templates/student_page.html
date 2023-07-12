@@ -1,0 +1,52 @@
+{% extends 'home1.html' %}
+
+{% block content %}
+
+  <style>
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0px;
+    }
+
+    h1,h2,p {
+      text-align: center;
+    }
+
+    p{
+      font-size:20px;
+    }
+
+    li {
+      margin-bottom: 10px;
+    }
+
+    section{
+      margin-top: 37px;
+    }
+
+  </style>
+  <h2>Welcome to the student page of the Online Quiz Application. Here, you can take quizzes and view your profile</h2>
+
+  <section>
+    <h2>Profile</h2>
+    <p>In this section you will be able to view your information like username, email address,full name,mobile number and branch.</p>
+  </section>
+
+  <section>
+    <h2>Quiz</h2>
+    <p>In this section you need to enter a valid exam code to start the quiz.</p>
+    
+  </section>
+
+  <section>
+    <h2>Quiz Guidelines</h2>
+    <p>You are able to attempt a quiz with unique exam code only one time.</p>
+    <p>You can attempt multiple quizzes with different exam codes.</p>
+    <p>After entering the unique exam code the quiz will start and the timer will be set and the quiz will auto submit after the given time.</p>
+    <p>The quiz is of mcq type and you are able to choose only one option.</p>
+    <p>You are able to submit the quiz before the given time.</p>
+
+  </section>
+
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+  <style>
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0px;
+    }
+
+    h1,h2,p {
+      text-align: center;
+    }
+
+    p{
+      font-size:20px;
+    }
+
+    li {
+      margin-bottom: 10px;
+    }
+
+    section{
+      margin-top: 40px;
+    }
+
+  </style>
+  <h2>Welcome to the admin page of the Online Quiz Application. Here, you can manage quizzes, student details, and marks information.</h2>
+
+  <section>
+    <h2>Create Exam</h2>
+    <p>In this section you need to enter a exam code and if the exam code is unique then you will be able to create the quiz.</p>
+    <p>If the exam code is not unique it will pop a error message.</p>
+    <p>After successfully entering the unique exam code you need to create the questions which are of mcq type in which only one option is correct.</p>
+  </section>
+
+  <section>
+    <h2>Marks</h2>
+    <p>Students after succesfully submitting the quiz then their answers will be evaluated and the marks will be redirected to marks section.</p>
+    <p>The student marks,username,fullname,branch and the respective exam code will be shown in the marks section.</p>
+  </section>
+
+  <section>
+    <h2>Student Details</h2>
+    <p>The students details will be shown like username,fullname,email,branch and mobile number after the successful registration.</p>
+  </section>
+
+{% endblock %}

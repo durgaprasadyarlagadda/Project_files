@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Online Quiz Application</title>
+  <link rel="icon" href="static/quiz.png" type="image/png">
+  <style>
+    body {
+      font-family: Garamond, serif;
+      margin: 0;
+      padding: 0;
+      background-image: url('static/bg4.jpg');
+      background-attachment: fixed;
+      background-size: cover;
+    }
+
+    .navbar {
+      background-color: orange;
+      color: white;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      margin-left: 40px;
+      font-size: 40px;
+    }
+
+    .welcome-section {
+      text-align: center;
+      padding: 40px;
+      min-height: 80vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: orange;
+      overflow-y: auto;
+    }
+
+    .welcome-message {
+      font-size: 150px;
+      margin-bottom: 20px;
+      visibility: hidden;
+    }
+
+    @media screen and (max-width: 768px) {
+      .navbar {
+        flex-direction: column;
+        align-items: flex-end;
+      }
+
+      .navbar a {
+        margin-left: 0;
+        margin-bottom: 10px;
+        font-size: 24px;
+      }
+
+      .welcome-message {
+        font-size: 72px;
+      }
+    }
+
+    @media screen and (max-width: 480px) {
+      .navbar {
+        padding: 10px;
+      }
+
+      .navbar a {
+        margin-bottom: 5px;
+        font-size: 20px;
+      }
+
+      .welcome-message {
+        font-size: 36px;
+        margin-bottom: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <div></div>
+    <div>
+      <a href="{{ url_for('login') }}">Login</a>
+      <a href="{{ url_for('register') }}">Register</a>
+    </div>
+  </div>
+
+  <div class="welcome-section">
+    <div class="welcome-message" id="welcomeMessage">
+      Welcome to Online Quiz Application
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var welcomeMessage = document.getElementById('welcomeMessage');
+      var messageText = welcomeMessage.textContent;
+      welcomeMessage.textContent = '';
+
+      for (var i = 0; i < messageText.length; i++) {
+        (function(i) {
+          setTimeout(function() {
+            welcomeMessage.style.visibility = 'visible';
+            welcomeMessage.textContent += messageText[i];
+          }, i * 100);
+        })(i);
+      }
+    });
+  </script>
+</body>
+</html>

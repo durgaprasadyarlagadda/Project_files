@@ -1,0 +1,78 @@
+{% extends 'home1.html' %}
+
+{% block content %}
+  <style>
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    th, td {
+        text-align: left;
+        padding: 20px;
+    }
+
+    th {
+        background-color: #333;
+        color: white;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+    #profile {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 5px;
+    }
+
+    #profile h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+        #profile {
+            padding: 10px;
+        }
+    }
+  </style>
+
+  <div id="profile">
+    <h1>Profile</h1>
+    <table>
+      <tr>
+        <th>Field</th>
+        <th>Details</th>
+      </tr>
+      <tr>
+        <td>Username</td>
+        <td>{{ current_user.username }}</td>
+      </tr>
+      <tr>
+        <td>Full Name</td>
+        <td>{{ current_user.full_name }}</td>
+      </tr>
+      <tr>
+        <td>Email</td>
+        <td>{{ current_user.email}}</td>
+      </tr>
+      <tr>
+        <td>Mobile Number</td>
+        <td>{{ current_user.mobile_number }}</td>
+      </tr>
+      <tr>
+        <td>Branch</td>
+        <td>{{ current_user.branch }}</td>
+      </tr>
+      <tr>
+        <td>Role</td>
+        <td>{{ current_user.role }}</td>
+      </tr>
+    </table>
+  </div>
+{% endblock %}
